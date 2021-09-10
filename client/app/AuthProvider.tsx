@@ -71,6 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await Auth.currentSession();
         return result.getAccessToken().getJwtToken();
       } catch (err) {
+        // Failed to get an access token or refresh, assume the refresh token
+        // has expired and log the user out.
         await logout();
         return null;
       }
@@ -93,6 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         // user isn't logged in
         setUser(null);
+        // Success because we don't know if the user needs to be logged in or
+        // not (that's left to other parts of the app to decide). It's OK if a
+        // user isn't logged in.
         setLoadingStatus(LoadingStatus.SUCCESS);
       }
     })();
