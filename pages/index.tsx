@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useContext } from "react";
 import { AuthContext } from "../client/app/AuthProvider";
 
-const Home: NextPage = () => {
+function LogOutInMessage() {
   const { isLoggedIn, logout } = useContext(AuthContext);
 
   if (isLoggedIn) {
@@ -15,6 +15,19 @@ const Home: NextPage = () => {
   } else {
     return <Link href="/login">Login</Link>;
   }
+}
+
+const Home: NextPage = () => {
+  return (
+    <>
+      <p>
+        <Link href="/login-required">Protected Page</Link> |{" "}
+        <Link href="/dummies">Dummies</Link>
+      </p>
+
+      <LogOutInMessage />
+    </>
+  );
 };
 
 export default Home;

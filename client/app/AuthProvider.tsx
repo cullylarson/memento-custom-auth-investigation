@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { Auth } from "aws-amplify";
 import { Loading } from "../components/Loading";
+import { LoadingStatus } from "../lib/fetcher";
 
 type User = {
   username: string;
@@ -36,6 +37,7 @@ async function loginCognitoUser(
 type AuthContextProps = {
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  getAccessToken: () => Promise<string | null>;
   user: User | null;
   isLoggedIn: boolean;
 };
@@ -43,20 +45,19 @@ type AuthContextProps = {
 export const AuthContext = createContext<AuthContextProps>({
   login: async () => {},
   logout: async () => {},
+  getAccessToken: async () => null,
   user: null,
   isLoggedIn: false,
 });
 
-enum LoadingStatus {
-  READY = "ready", // status if useSWR key === null (which means: don't fetch)
-  LOADING = "loading",
-  ERROR = "error",
-  SUCCESS = "success",
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loadingStatus, setLoadingStatus] = useState(LoadingStatus.LOADING);
   const [user, setUser] = useState<User | null>(null);
+
+  const logout = async () => {
+    await Auth.signOut();
+    setUser(null);
+  };
 
   const contextValue: AuthContextProps = {
     login: async (username, password) => {
@@ -64,9 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(result.user);
     },
-    logout: async () => {
-      await Auth.signOut();
-      setUser(null);
+    logout,
+    getAccessToken: async () => {
+      try {
+        const result = await Auth.currentSession();
+        return result.getAccessToken().getJwtToken();
+      } catch (err) {
+        await logout();
+        return null;
+      }
     },
     user,
     isLoggedIn: Boolean(user),
