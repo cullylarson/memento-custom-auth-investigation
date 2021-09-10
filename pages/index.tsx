@@ -22,7 +22,8 @@ const Home: NextPage = () => {
     <>
       <p>
         <Link href="/login-required">Protected Page</Link> |{" "}
-        <Link href="/dummies">Dummies</Link>
+        <Link href="/dummies">Dummies (Protected)</Link> |{" "}
+        <Link href="/no-login">Public Page</Link>
       </p>
 
       <LogOutInMessage />
