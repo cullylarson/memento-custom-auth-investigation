@@ -55,7 +55,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   const logout = async () => {
-    await Auth.signOut();
+    try {
+      await Auth.signOut();
+    } catch (err) {
+      // Not sure if anything is thrown here, but it might be if the user isn't
+      // actually logged in. In that case, we just want to swallow the error;
+      // the user being logged out is what we want.
+    }
+
     setUser(null);
   };
 
