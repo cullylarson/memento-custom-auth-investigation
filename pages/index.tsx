@@ -1,15 +1,17 @@
 import type { NextPage } from "next";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useContext } from "react";
 import { AuthContext } from "../client/app/AuthProvider";
 
 function LogOutInMessage() {
-  const { isLoggedIn, logout } = useContext(AuthContext);
+  const { isLoggedIn, logout, user } = useContext(AuthContext);
 
   if (isLoggedIn) {
     return (
       <p>
-        Logged in. <button onClick={() => logout()}>Logout</button>
+        Logged in ({user!.username} | {user!.name} | {user!.email}).{" "}
+        <button onClick={() => logout()}>Logout</button>
       </p>
     );
   } else {
