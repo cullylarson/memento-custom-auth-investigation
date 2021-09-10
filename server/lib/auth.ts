@@ -1,6 +1,13 @@
+import { withSSRContext } from "aws-amplify";
 import { decode } from "jsonwebtoken";
-import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
+import {
+  GetServerSidePropsContext,
+  NextApiHandler,
+  NextApiRequest,
+  NextApiResponse,
+} from "next";
 
+// wraps an API handler, checks auth before running it
 export function CheckAuth(handler: NextApiHandler) {
   return (req: NextApiRequest, res: NextApiResponse) => {
     const fail = () => {
@@ -33,4 +40,19 @@ export function CheckAuth(handler: NextApiHandler) {
 
     return handler(req, res);
   };
+}
+
+export async function getAccessToken(
+  ctx: GetServerSidePropsContext
+): Promise<string | null> {
+  const ssr = withSSRContext({ req: ctx.req });
+
+  try {
+    return (await ssr.Auth.currentAuthenticatedUser()).signInUserSession
+      .getAccessToken()
+      .getJwtToken();
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
 }

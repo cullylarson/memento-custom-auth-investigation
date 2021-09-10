@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { CheckAuth } from "../../server/lib/checkAuth";
+import { CheckAuth } from "../../server/lib/auth";
 
 const handler = CheckAuth((_req: NextApiRequest, res: NextApiResponse) => {
   return res.status(200).json([

@@ -9,10 +9,12 @@ type Dummy = {
   description: string;
 };
 
+export const endpointPath = "/api/dummy";
+
 export const useDummies = () => {
   const { getAccessToken } = useContext(AuthContext);
 
-  const key = `/api/dummy`;
+  const key = endpointPath;
 
   const fetcher = useMemo(() => Fetcher(getAccessToken), [getAccessToken]);
 

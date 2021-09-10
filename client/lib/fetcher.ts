@@ -1,3 +1,5 @@
+import urlJoin from "url-join";
+
 type Fetcher<T = any, B = any> = (
   path: string,
   options?: FetcherOptions<B>
@@ -70,10 +72,12 @@ const handleFetchResponse = async (response: Response) => {
   }
 };
 
+const baseUrl = "http://localhost:3000";
+
 export const Fetcher: FetcherCurried =
   (getAccessToken) =>
   async (path, { method = "GET", headers = {}, body = undefined } = {}) => {
-    const url = path;
+    const url = urlJoin(baseUrl, path);
 
     const accessToken = await getAccessToken();
 
