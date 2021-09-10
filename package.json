@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "aws-amplify": "^4.2.9",
     "jsonwebtoken": "^8.5.1",
     "next": "11.1.2",
     "nookies": "^2.5.2",

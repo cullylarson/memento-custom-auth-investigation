@@ -1,119 +1,99 @@
-import { createContext, ReactNode, useEffect, useMemo, useState } from "react";
-import { AuthSession, getAuthSession, tokenFresh, User } from "../lib/auth";
+import { createContext, ReactNode, useEffect, useState } from "react";
+import { Auth } from "aws-amplify";
+import { Loading } from "../components/Loading";
+
+type User = {
+  username: string;
+  name: string;
+  email: string;
+};
+
+type AuthorizePayload = {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+};
+
+async function loginCognitoUser(
+  username: string,
+  password: string
+): Promise<AuthorizePayload> {
+  const user = await Auth.signIn(username, password);
+
+  const idToken = user.signInUserSession.getIdToken();
+
+  return {
+    user: {
+      username: idToken.payload["cognito:username"],
+      name: idToken.payload.name,
+      email: idToken.payload.email,
+    },
+    accessToken: user.signInUserSession.getAccessToken().getJwtToken(),
+    refreshToken: user.signInUserSession.getRefreshToken().getToken(),
+  };
+}
 
 type AuthContextProps = {
-  getAccessToken: () => Promise<string | null>;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   user: User | null;
   isLoggedIn: boolean;
 };
 
 export const AuthContext = createContext<AuthContextProps>({
-  getAccessToken: async () => null,
+  login: async () => {},
+  logout: async () => {},
   user: null,
   isLoggedIn: false,
 });
 
-// sort of mutex. make sure only one request is happening at a time
-function SingletonP() {
-  let active = false;
-  let activeP: Promise<any> = Promise.resolve(null);
-
-  return (f: (...args: any[]) => Promise<any>) =>
-    (...args: any[]): Promise<any> => {
-      if (active) return activeP;
-
-      active = true;
-
-      activeP = f
-        .apply(null, args)
-        .then((x: any) => {
-          active = false;
-
-          return x;
-        })
-        .catch((err: any) => {
-          active = false;
-
-          throw err;
-        });
-
-      return activeP;
-    };
-}
-
-const refreshSingleton = SingletonP();
-
-// It could be the case where multiple callers need a fresh access token at
-// the same time. So we need to mutex this call.
-const refresh = refreshSingleton(
-  async (refreshToken: string): string | null => {
-    // TODO -- left off
-  }
-);
-
-async function getAccessToken(authSession: AuthSession | null) {
-  const tokenCushion = 60; // 60 seconds
-
-  if (!authSession) return null;
-
-  // already have a current auth token
-  if (
-    authSession.accessToken &&
-    authSession.accessTokenExpiresAt &&
-    tokenFresh(authSession.accessTokenExpiresAt, tokenCushion)
-  ) {
-    return {
-      didRefresh: false,
-      accessToken: authSession.accessToken,
-    };
-  }
-  // try to refresh
-  else if (
-    authSession.refreshToken &&
-    authSession.refreshTokenExpiresAt &&
-    tokenFresh(authSession.refreshTokenExpiresAt, tokenCushion)
-  ) {
-    return {
-      didRefresh: true,
-      accessToken: (await refresh()) as string,
-    };
-  } else {
-    return null;
-  }
+enum LoadingStatus {
+  READY = "ready", // status if useSWR key === null (which means: don't fetch)
+  LOADING = "loading",
+  ERROR = "error",
+  SUCCESS = "success",
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [forceRefresh, setForceRefresh] = useState(0);
-
-  const authSession = useMemo(() => {
-    return getAuthSession();
-  }, [forceRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const [user, setUser] = useState(authSession?.user || null);
-
-  useEffect(() => {
-    setUser(authSession?.user || null);
-  }, [authSession]);
+  const [loadingStatus, setLoadingStatus] = useState(LoadingStatus.LOADING);
+  const [user, setUser] = useState<User | null>(null);
 
   const contextValue: AuthContextProps = {
-    getAccessToken: async () => {
-      const result = await getAccessToken(authSession);
+    login: async (username, password) => {
+      const result = await loginCognitoUser(username, password);
 
-      if (!result) return null;
-
-      const { didRefresh, accessToken } = result;
-
-      if (didRefresh) {
-        setForceRefresh((x) => x + 1);
-      }
-
-      return accessToken;
+      setUser(result.user);
+    },
+    logout: async () => {
+      await Auth.signOut();
+      setUser(null);
     },
     user,
     isLoggedIn: Boolean(user),
   };
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const userCognito = await Auth.currentAuthenticatedUser();
+
+        setUser({
+          username: userCognito.username,
+          name: userCognito.attributes.name,
+          email: userCognito.attributes.email,
+        });
+        setLoadingStatus(LoadingStatus.SUCCESS);
+      } catch (err) {
+        // user isn't logged in
+        setUser(null);
+        setLoadingStatus(LoadingStatus.SUCCESS);
+      }
+    })();
+  }, []);
+
   return (
-    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>
+      {loadingStatus === LoadingStatus.LOADING ? <Loading /> : children}
+    </AuthContext.Provider>
   );
 }
