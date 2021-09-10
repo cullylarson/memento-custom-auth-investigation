@@ -33,7 +33,7 @@ function Content() {
   );
 }
 
-export default function LoginRequiredPage() {
+export default function DummiesPage() {
   return (
     <GuardAuthenticated>
       <Content />
