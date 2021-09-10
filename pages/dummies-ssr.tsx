@@ -4,7 +4,7 @@ import { SWRConfig } from "swr";
 import { AuthContext } from "../client/app/AuthProvider";
 import { ErrorMessage } from "../client/components/ErrorMessage";
 import { GuardAuthenticated } from "../client/components/GuardAuthenticated";
-import { useDummies, endpointPath } from "../client/hooks/useDummies";
+import { useDummies, endpointPath } from "../client/dummy/useDummies";
 import { Fetcher, LoadingStatus } from "../client/lib/fetcher";
 import { getAccessToken } from "../server/lib/auth";
 

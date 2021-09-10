@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { AuthContext } from "../client/app/AuthProvider";
 import { ErrorMessage } from "../client/components/ErrorMessage";
 import { GuardAuthenticated } from "../client/components/GuardAuthenticated";
-import { useDummies } from "../client/hooks/useDummies";
+import { useDummies } from "../client/dummy/useDummies";
 import { LoadingStatus } from "../client/lib/fetcher";
 
 function Content() {
