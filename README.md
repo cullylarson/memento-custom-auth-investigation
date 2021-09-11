@@ -1,34 +1,28 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Memento Custom Auth
 
-## Getting Started
+> A proof of concept for handling auth.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
+```
+git clone ...
+yarn install
+cp .env .env.local
+# Set the two environment variables to the values you're using for
+# memento-client, in dev
+
+yarn start
+open localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Notes
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Click "Login". Use your memento staging username/password. After that you should be able to view the two password protected pages (linked on the home page). If you click Logout on one of those pages, you'll be redirected to the login page.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+There's a bit of extra work for any of the SWR hooks; you have pass a getAccessToken to the fetcher. See https://github.com/cullylarson/memento-custom-auth-investigation/blob/main/client/hooks/useDummies.ts for an example. But the logic is mostly really simple. Everything reacts to events like logging out (manually or if the refresh token expires). No need to await or check isLoading while auth is checked because the page won't render until the auth check is done.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+All of the auth stuff is done through [AuthProvider](https://github.com/cullylarson/memento-custom-auth-investigation/blob/main/client/app/AuthProvider.tsx).
 
-## Learn More
+I created a demo [API endpoint](https://github.com/cullylarson/memento-custom-auth-investigation/blob/main/pages/api/dummy.ts). We likely won't use the Next API, but it simulates a memento-api endpoint by doing a rudimentary auth check (just makes sure a token is provided and isn't expired).
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+To note, the is just a rough demo. It doesn't really do anything to respond to errors.
