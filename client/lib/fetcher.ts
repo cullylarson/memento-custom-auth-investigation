@@ -1,4 +1,6 @@
+import { useContext, useMemo } from "react";
 import urlJoin from "url-join";
+import { AuthContext } from "../app/AuthProvider";
 
 type Fetcher<T = any, B = any> = (
   path: string,
@@ -96,3 +98,11 @@ export const Fetcher: FetcherCurried =
 
     return handleFetchResponse(response);
   };
+
+export function useFetcher() {
+  const { getAccessToken } = useContext(AuthContext);
+
+  const fetcher = useMemo(() => Fetcher(getAccessToken), [getAccessToken]);
+
+  return fetcher;
+}
