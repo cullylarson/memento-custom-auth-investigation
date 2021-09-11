@@ -19,7 +19,7 @@ open localhost:3000
 
 Click "Login". Use your memento staging username/password. After that you should be able to view the two password protected pages (linked on the home page). If you click Logout on one of those pages, you'll be redirected to the login page.
 
-There's a bit of extra work for any of the SWR hooks; you have pass a getAccessToken to the fetcher. See https://github.com/cullylarson/memento-custom-auth-investigation/blob/main/client/hooks/useDummies.ts for an example. But the logic is mostly really simple. Everything reacts to events like logging out (manually or if the refresh token expires). No need to await or check isLoading while auth is checked because the page won't render until the auth check is done.
+There's a bit of extra work for any of the SWR hooks; you have pass a getAccessToken to the fetcher. See useDummies[https://github.com/cullylarson/memento-custom-auth-investigation/blob/main/client/dummy/useDummies.ts] for an example. But the logic is mostly really simple. Everything reacts to events like logging out (manually or if the refresh token expires). No need to await or check isLoading while auth is checked because the page won't render until the auth check is done.
 
 All of the auth stuff is done through [AuthProvider](https://github.com/cullylarson/memento-custom-auth-investigation/blob/main/client/app/AuthProvider.tsx).
 
